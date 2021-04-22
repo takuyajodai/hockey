@@ -9,6 +9,7 @@ int dirX, dirY;
 float bar1X, bar1Y;
 //クライアント側バーの位置
 float bar2X, bar2Y;
+
 //キー入力検出
 int my_keycode;
 boolean barBool;
@@ -82,14 +83,25 @@ void title() {
 void game() {
   background(100);
   textSize(20);
+  fill(30, 60, 80);
   text("server: " + score_s, width*0.1, height*0.1);
+  fill(90,60, 80);
   text("client: " + score_c, width*0.9, height*0.1);
   textSize(32);
+  
+  //サーバゴールの表示
+  fill(30, 60, 80);
+  rect(0, 150, 3, 100);
   //サーバbarの描画
   rect(bar1X, bar1Y, 10, 50);
+  
+  //クライアントゴール
+  fill(90,60, 80);
+  rect(597, 150, 3, 100);
   //クライアントbarの描画
   rect(bar2X, bar2Y, 10, 50);
   
+
   //自分（クライアント）の描画
   fill(100,10);
   rect(0, 0, 600, 400);

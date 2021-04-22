@@ -9,13 +9,16 @@ int dirX, dirY;
 float bar1X, bar1Y;
 //クライアント側バーの位置
 float bar2X, bar2Y;
+//速さ
+float vX;
+float vY;
 //クライアント側のバー状態
 int my_keycode;
 boolean barBool;
 //ポート番号を指定（今回は20000）
 int port = 20000;
 
-//ゲームの状態遷移(0=タイトル, 1=ゲーム)
+//ゲームの状態遷移(0=タイトル, 1=ゲーム, 2=クリア)
 int scene;
 
 
@@ -60,6 +63,8 @@ void setup(){
   bar1Y = height/2;
   bar2X = 550;
   bar2Y = height/2;
+  vX = 1;
+  vY = 1;
   
   my_keycode = 0;
   barBool = false;
@@ -122,7 +127,9 @@ void title() {
 void game() {
   background(100);
   textSize(20);
+  fill(30, 60, 80);
   text("server: " + score_s, width*0.1, height*0.1);
+  fill(90, 60, 80);
   text("client: " + score_c, width*0.9, height*0.1);
   textSize(32);
   
@@ -167,21 +174,33 @@ void game() {
   //描画処理
   //右側の壁の当たり判定
   if(x + 5 > 600) {
-    score_s++;
-    if(score_s == 3) {
-      scene = 2;
+    if(y > 150 && y < 250) {
+      score_s++;
+      if(score_s == 3) {
+        scene = 2;
+      } else {
+        scene = 0;
+      }
     } else {
-      scene = 0;
+      dirX = -1;
+      x = 600 - 5;
     }
+    
   }
   //左側の壁の当たり判定
   if(x - 5 < 0) {
-    score_c++;
-    if(score_c == 3) {
-      scene = 2;
+    if(y > 150 && y < 250) {
+      score_c++;
+      if(score_c == 3) {
+        scene = 2;
+      } else {
+        scene = 0;
+      }
     } else {
-      scene = 0;
+      dirX = 1;
+      x = 5;
     }
+    
   }
   
   //下の壁当たり判定
@@ -197,17 +216,38 @@ void game() {
   }
   //bar1の当たり判定
   if(x - 5 < bar1X + 10 && x - 5 > bar1X && y - 5 > bar1Y && y + 5 < bar1Y + 50) {
+    vX=random(2,4);
     dirX = 1;
+  }
+  
+  //bar1の裏側判定
+  if(x + 5 > bar1X && x + 5 < bar1X + 5 && y - 5 > bar1Y && y + 5 < bar1Y + 50) {
+    dirX = -1;
   }
   
   //bar2の当たり判定
   if(x + 5 > bar2X && x + 5 < bar2X + 10 && y - 5 > bar2Y && y + 5 < bar2Y + 50) {
+    vY=random(2,4);
     dirX = -1;
   }
   
+  //bar2の裏側判定
+  if(x - 5 < bar2X + 10 && x - 5 > bar2X + 5 && y - 5 > bar2Y && y + 5 < bar2Y + 50) {
+    dirX = 1;
+  }
+  
   println("game()");
+  //サーバゴールの表示
+  fill(30, 60, 80);
+  rect(0, 150, 3, 100);
+  
   //サーバbarの描画
   rect(bar1X, bar1Y, 10, 50);
+  
+  
+  //クライアントゴール
+  fill(90,60, 80);
+  rect(597, 150, 3, 100);
   //クライアントbarの描画
   rect(bar2X, bar2Y, 10, 50);
   
@@ -218,8 +258,8 @@ void game() {
   fill(60,60,80);
   ellipse(x,y,5,5);
 
-  x += dirX*1;
-  y += dirY*1;
+  x += dirX*vX;
+  y += dirY*vY;
 
   
   sendAllData();
@@ -243,7 +283,7 @@ void clear() {
 void sendAllData(){
   //サーバに送信するメッセージを作成
   //空白で区切り末尾は改行
-  String msg = x + " " + y + " " + dirX + " " + dirY + " " + bar1X + " " + bar1Y + " " + bar2X + " " + bar2Y + '\n';
+  String msg = x + " " + y + " " + dirX + " " + dirY + " " + bar1X + " " + bar1Y + " " + bar2X + " " + bar2Y + " " + scene + " " + score_s + " " + score_c + '\n';
   print("server: " + msg);
   //サーバが接続しているすべてのクライアントに送信
   //(複数のクライアントが接続している場合は全てのクライアントに送信)
