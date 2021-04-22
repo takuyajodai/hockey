@@ -15,6 +15,13 @@ boolean barBool;
 //ポート番号を指定（今回は20000）
 int port = 20000;
 
+//ゲームの状態遷移(0=タイトル, 1=ゲーム)
+int scene;
+
+
+//スコア
+int score_s, score_c;
+
 
 //KeyStateクラス
 class KeyState {
@@ -45,8 +52,8 @@ KeyState my_keyState;
 void setup(){
   //サーバを生成prot番ポートで立ち上げ
   server = new Server(this, port);
-  x = 0;
-  y = 0;
+  x = width/2;
+  y = height/2;
   dirX = 1;
   dirY = 1;
   bar1X = 50;
@@ -56,6 +63,15 @@ void setup(){
   
   my_keycode = 0;
   barBool = false;
+  
+  scene = 0;
+  
+  score_s = 0;
+  score_c = 0;
+  
+  textSize(32);
+  textAlign(CENTER);
+  
   size(600, 400);
   colorMode(HSB, 100);
   noStroke();
@@ -66,7 +82,51 @@ void setup(){
 
 void draw(){
 
+  if(scene == 0) {
+    title();
+  } else if (scene == 1) {
+    game();
+  } else if (scene == 2) {
+    clear();
+  }
+  
+  
+  
+  
+  
+  
+  
+}//draw()
 
+  
+void keyPressed() {
+  my_keyState.put(keyCode, true);
+}
+
+void keyReleased() {
+  my_keyState.put(keyCode, false);
+}
+
+void title() {
+   x = width/2;
+   y = height/2;
+   background(100);
+   fill(60,60,80);
+   textSize(32);
+   text("press z to start", width * 0.5, height * 0.7);
+   if(keyPressed && key == 'z'){ // if 'z' key is pressed
+     scene = 1;
+   }
+}//title()
+
+void game() {
+  background(100);
+  textSize(20);
+  text("server: " + score_s, width*0.1, height*0.1);
+  text("client: " + score_c, width*0.9, height*0.1);
+  textSize(32);
+  
+  
   //キー操作で，それぞれのstateのbooleanをとってくる
   if(my_keyState.get(LEFT)) {
     bar2Y += 4;
@@ -107,13 +167,21 @@ void draw(){
   //描画処理
   //右側の壁の当たり判定
   if(x + 5 > 600) {
-     dirX = -1;
-     x = 600 - 5;//場所のリセット
+    score_s++;
+    if(score_s == 3) {
+      scene = 2;
+    } else {
+      scene = 0;
+    }
   }
   //左側の壁の当たり判定
   if(x - 5 < 0) {
-     dirX = 1;
-     x = 5;//場所のリセット
+    score_c++;
+    if(score_c == 3) {
+      scene = 2;
+    } else {
+      scene = 0;
+    }
   }
   
   //下の壁当たり判定
@@ -134,10 +202,10 @@ void draw(){
   
   //bar2の当たり判定
   if(x + 5 > bar2X && x + 5 < bar2X + 10 && y - 5 > bar2Y && y + 5 < bar2Y + 50) {
-    dirX = 1;
+    dirX = -1;
   }
   
-  
+  println("game()");
   //サーバbarの描画
   rect(bar1X, bar1Y, 10, 50);
   //クライアントbarの描画
@@ -155,17 +223,20 @@ void draw(){
 
   
   sendAllData();
-}
+}//game()
 
-  
-void keyPressed() {
-  my_keyState.put(keyCode, true);
-}
+void clear() {
+  if(score_s > score_c) {
+    text("sever win", width * 0.5, height * 0.5);
+    noLoop();
+  } else {
+    text("client win", width * 0.5, height * 0.5);
+    noLoop();
+  }
+    
+    
 
-void keyReleased() {
-  my_keyState.put(keyCode, false);
 }
-
 
 
 //現在の状況をすべてのクライアントに送信
