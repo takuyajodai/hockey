@@ -1,10 +1,10 @@
 //ソケット通信のためのライブラリを読み込み
 import processing.net.*;
 Client client;
-//クライアント側でクリックした座標
-int cx, cy;
-//サーバ側でクリックした座標
-int sx, sy;
+//ボールの座標
+int x, y;
+//ボールの方向
+int dirX, dirY;
 //サーバのアドレス
 //127.0.0.1はローカルマシン
 //他のマシンに接続するときは適切に変更
@@ -16,22 +16,23 @@ int port = 20000;
 void setup() {
   //指定されたアドレスとポートでサーバに接続
   client = new Client(this, serverAdder, port);
-  cx = 0;
-  cy = 0;
-  sx = 0;
-  sy = 0;
-  size(100, 100);
-  colorMode(RGB, 100);
+  x = 0;
+  y = 0;
+  dirX = 1;
+  dirY = 1;
+  size(400, 400);
+  colorMode(HSB, 100);
   noStroke();
+  ellipseMode(RADIUS);
 }
 
 void draw() {
   //自分（クライアント）の描画
-  fill(100, 0, 0);
-  rect(cx, cy, 5, 5);
-  //相手（サーバ）の描画
-  fill(0, 0, 100);
-  rect(sx, sy, 5, 5);
+  fill(100,10);
+  rect(0, 0, 400, 400);
+  noStroke();
+  fill(60,60,80);
+  ellipse(x,y,10,10);
 }
 
 //サーバーからデータを受け取るたびに呼び出される関数
@@ -43,16 +44,17 @@ void clientEvent(Client c) {
     //改行を取り除き，空白で分割して配列に格納
     String[] data = splitTokens(msg);
     //サーバ側のx座標
-    sx = int(data[0]); //int()で文字列から整数に変換
+    x = int(data[0]); //int()で文字列から整数に変換
     //サーバ側のy座標
-    sy = int(data[1]);
+    y = int(data[1]);
     //クライアント側のx座標
-    cx = int(data[2]);
+    dirX = int(data[2]);
     //クライアント側のy座標
-    cy = int(data[3]);
+    dirY = int(data[3]);
   }
 }
 
+/*
 //マウスがクリックされたら
 void mouseClicked() {
   //クライアント側の座標として登録
@@ -66,3 +68,4 @@ void mouseClicked() {
   client.write(msg);
   //ここで，直接cx, cyに代入せずに，サーバにデータを送ることが重要
 }
+*/
