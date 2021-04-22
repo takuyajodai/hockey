@@ -2,9 +2,11 @@
 import processing.net.*;
 Server server;
 //ボールの座標
-int x, y;
+float x, y;
 //ボールの方向
 int dirX, dirY;
+//サーバ側バーの位置
+float bar1X, bar1Y;
 //ポート番号を指定（今回は20000）
 int port = 20000;
 
@@ -16,6 +18,7 @@ void setup(){
   y = 0;
   dirX = 1;
   dirY = 1;
+  bar1X = 
   size(400,400);
   colorMode(HSB, 100);
   noStroke();
@@ -67,7 +70,7 @@ void draw(){
   
   //相手（クライアント）の描画
   fill(100,10);
-  rect(0, 0, 400, 400);
+  rect(0, 0, 600, 400);
   noStroke();
   fill(60,60,80);
   ellipse(x,y,5,5);
@@ -86,6 +89,16 @@ void mouseClicked(){
   sendAllData();
 }
 */
+
+void keyPressed() {
+  if (key == CODED) {
+    if(keyCode == UP) {
+      bar1Y -= 4; 
+    } else if (keyCode == DOWN) {
+      bar1Y += 4;
+    }
+  }
+}
 
 //現在の状況をすべてのクライアントに送信
 void sendAllData(){
