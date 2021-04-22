@@ -11,8 +11,7 @@ float bar1X, bar1Y;
 float bar2X, bar2Y;
 //キー入力検出
 int my_keycode;
-int dirBar;
-boolean keyPress;
+boolean barBool;
 
 //サーバのアドレス
 //127.0.0.1はローカルマシン
@@ -21,12 +20,20 @@ String serverAdder = "127.0.0.1";
 //ポート番号を指定（今回は20000）
 int port = 20000;
 
+//ゲームの状態遷移(0=タイトル, 1=ゲーム, 2=クリア)
+int scene;
+
+//スコア
+int score_s, score_c;
+
+
+
 //初期化
 void setup() {
   //指定されたアドレスとポートでサーバに接続
   client = new Client(this, serverAdder, port);
-  x = 0;
-  y = 0;
+  x = width/2;
+  y = height/2;
   dirX = 1;
   dirY = 1;
   bar1X = 50;
@@ -35,8 +42,14 @@ void setup() {
   bar2Y = height/2;
   
   my_keycode = 0;
-  dirBar = 0;
-  keyPress = false;
+  barBool = false;
+  
+  scene = 0;
+  score_s = 0;
+  score_c = 0;
+  
+  textSize(32);
+  textAlign(CENTER);
   size(600, 400);
   colorMode(HSB, 100);
   noStroke();
@@ -44,6 +57,34 @@ void setup() {
 }
 
 void draw() {
+  
+  if(scene == 0) {
+    title();
+  } else if (scene == 1) {
+    game();
+  } else if (scene == 2) {
+    clear();
+  }
+  
+  
+}//draw()
+
+void title() {
+   x = width/2;
+   y = height/2;
+   background(100);
+   fill(60,60,80);
+   textSize(32);
+   text("press z on server screen!", width * 0.5, height * 0.7);
+   
+}
+
+void game() {
+  background(100);
+  textSize(20);
+  text("server: " + score_s, width*0.1, height*0.1);
+  text("client: " + score_c, width*0.9, height*0.1);
+  textSize(32);
   //サーバbarの描画
   rect(bar1X, bar1Y, 10, 50);
   //クライアントbarの描画
@@ -82,27 +123,61 @@ void clientEvent(Client c) {
     //サーバ側のバーY座標
     bar2Y = float(data[7]);
     
+    scene = int(data[8]);
+    
+    score_s = int(data[9]);
+    score_c = int(data[10]);
+  }
+    
+}//game()
+
+void clear() {
+  if(score_s > score_c) {
+    text("sever win", width * 0.5, height * 0.5);
+    noLoop();
+  } else {
+    text("client win", width * 0.5, height * 0.5);
+    noLoop();
   }
 }
 
 //キーが入力されたら
 void keyPressed() {
-  keyPress = true;
   if (key == CODED) {
     //上入力
     if(keyCode == RIGHT) {
+      barBool = true;
       my_keycode = RIGHT; 
-      dirBar = -1;
+      
     }
     //下入力
     if (keyCode == LEFT) {
+      barBool = true;
       my_keycode = LEFT;
-      dirBar = 1;
     }
-    String msg = my_keycode + " " + dirBar + " " + keyPress + "\n";
+    String msg = my_keycode + " " + barBool + "\n";
     client.write(msg);
   }
 }
+
+void keyReleased() {
+  if (key == CODED) {
+    //上入力
+    if(keyCode == RIGHT) {
+      barBool = false;
+      my_keycode = RIGHT; 
+      
+    }
+    //下入力
+    if (keyCode == LEFT) {
+      barBool = false;
+      my_keycode = LEFT;
+    }
+    String msg = my_keycode + " " + barBool + "\n";
+    client.write(msg);
+  }
+}
+
 /*
 //マウスがクリックされたら
 void mouseClicked() {
