@@ -11,8 +11,7 @@ float bar1X, bar1Y;
 float bar2X, bar2Y;
 //クライアント側のバー状態
 int my_keycode;
-int dirBar;
-boolean keyPress;
+boolean barBool;
 //ポート番号を指定（今回は20000）
 int port = 20000;
 
@@ -56,8 +55,7 @@ void setup(){
   bar2Y = height/2;
   
   my_keycode = 0;
-  dirBar = 0;
-  keyPress = false;
+  barBool = false;
   size(600, 400);
   colorMode(HSB, 100);
   noStroke();
@@ -68,25 +66,8 @@ void setup(){
 
 void draw(){
 
-  
-  //クライアントからのデータ取得
-  Client c = server.available();
-  if(c != null) {
-    //改行コード('\n')まで読み込む
-    String msg = c.readStringUntil('\n');
-    if (msg != null){
-      //メッセージを空白で分割して配列に格納
-      String[] data = splitTokens(msg);
-      //クライアント側のバー状態
-      my_keycode = int(data[0]);
-      dirBar = int(data[1]);
-      keyPress = boolean(data[2]);
-      //全てのデータの送信
-      //sendAllData();
-    }
-  }
-  
-  //キー操作
+
+  //キー操作で，それぞれのstateのbooleanをとってくる
   if(my_keyState.get(LEFT)) {
     bar2Y += 4;
   }
@@ -98,7 +79,30 @@ void draw(){
   }
   if(my_keyState.get(DOWN)) {
     bar1Y += 4;
+  }  
+  
+  //クライアントのキー状況を反映(これが大事)
+  my_keyState.put(my_keycode, barBool);
+  
+  //クライアントからのデータ取得
+  Client c = server.available();
+  if(c != null) {
+    //改行コード('\n')まで読み込む
+    String msg = c.readStringUntil('\n');
+    if (msg != null){
+      //メッセージを空白で分割して配列に格納
+      String[] data = splitTokens(msg);
+      //クライアント側のバー状態
+      my_keycode = int(data[0]);
+      barBool = boolean(data[1]);
+      //全てのデータの送信
+      //sendAllData();
+    }
   }
+  
+
+  
+
   
   //描画処理
   //右側の壁の当たり判定
@@ -123,8 +127,13 @@ void draw(){
       dirY = 1;
       y = 5;//場所のリセット
   }
-  //barの当たり判定
+  //bar1の当たり判定
   if(x - 5 < bar1X + 10 && x - 5 > bar1X && y - 5 > bar1Y && y + 5 < bar1Y + 50) {
+    dirX = 1;
+  }
+  
+  //bar2の当たり判定
+  if(x + 5 > bar2X && x + 5 < bar2X + 10 && y - 5 > bar2Y && y + 5 < bar2Y + 50) {
     dirX = 1;
   }
   
